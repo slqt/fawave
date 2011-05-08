@@ -1,0 +1,100 @@
+<html>
+ <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="Authorization" content="Base 1232" />
+	<meta http-equiv="expires" content="31 Dec 2008">
+	<title>发送图片 - FaWave(发微) - 多微博插件 </title>
+	<script type="text/javascript" > window.theViewName = 'upimage'; </script>
+	<link rel="stylesheet" media="screen" type="text/css" href="/css/popup.css" />
+	<link rel="stylesheet" media="screen" type="text/css" href="/css/upimage.css" />
+	<script type="text/javascript" src="scripts/lib/jquery-1.4.js" ></script>
+	<script type="text/javascript" src="scripts/lib/Base64.js" ></script>
+	<script type="text/javascript" src="scripts/emotional.js" ></script>
+	<script type="text/javascript" src="scripts/utili.js" ></script>
+	<script type="text/javascript" src="scripts/s8api.js" ></script>
+	<script type="text/javascript" src="scripts/lib/sha1.js" ></script>
+    <script type="text/javascript" src="scripts/lib/oauth.js" ></script>
+	<script type="text/javascript" src="scripts/apis.js" ></script>
+	<script type="text/javascript" src="scripts/ui.js" ></script>
+	<script type="text/javascript" src="scripts/popup.js" ></script>
+	<script type="text/javascript" src="scripts/upimage.js" ></script>
+	<style id="styleCustom" ></style>
+	<script>
+		this.document.title = _u.i18n('comm_pic') + ' -- ' + _u.i18n('defaultTitle');
+		
+		var wh_css = 'body{font-family:"'+ Settings.get().font +'";font-size:'+ Settings.get().fontSite +'px;}';
+		$("#styleCustom").html(wh_css);
+	</script>
+ </head>
+
+ <body onload="initOnLoad();" style="margin:0 auto;">
+    
+	<div id="submitWarp"  style="margin-top:10px;">
+	  <div class="w">
+		<ul id="accountsForSend"></ul>
+		<textarea id="txtContent" ></textarea>
+		<div class="ctr">
+			<span id="wordCount">140</span>&nbsp;
+			<a id="btnAddEmotional" href="javascript:void(0);" onclick="fawave.face.show(this, 'txtContent');"><img src="images/face.gif" /><script>_u.wi('comm_emotional')</script></a>
+			<script>_u.wia('#btnAddEmotional','title','btn_emotional_title');</script>&nbsp;
+			<button onclick="cleanTxtContent();" class="btn"><script>_u.wi('comm_clear')</script></button>&nbsp;
+			<button onclick="window.close();" class="btn"><script>_u.wi('comm_close')</script></button>&nbsp;
+			<input id="btnSend" type="button" value="发微!" title="ctrl + enter 发送" class="btn send" disabled="disabled" />
+			<script>_u.wia('#btnSend','value','comm_send'); _u.wia('#btnSend','title','comm_send_tip');</script>
+		</div>
+	  </div>
+	</div><!-- submitWarp END -->
+
+	<div>
+		<ul id="uploadinfo">
+		</ul>
+		<div class="fileSel graph">
+			<strong id="progressBar" class="bar" style="width: 0%;"><span></span></strong>
+			<div class="selTip"><script>_u.wi('btn_select_pic_title')</script></div>
+		</div>
+		<span id="imageFileWrap" style="display:block;">
+			<input type="file" value="选择图片" id="imageFile" onchange="selectFile(this)" />
+		</span>
+		
+		<!-- <div style="width: 200px; "><span id="progressBar"></span></div> -->
+		<div id="imgPreview"></div>
+	<div>
+	<div id="msgInfoWarp" style=""></div>
+	
+	<!-- 表情选择 -->
+	<div id="face_box" class="layerBox" style="display:none;">
+		<div class="layerBoxCon1">
+			<div class="faceItem clearFix">
+				<div class="layerArrow"></div>
+				<div class="face_tab tab2">
+                    <p>
+                        <a id="btnFaceBoxClose" class="close" href="javascript:void(fawave.face.hide())"></a>
+                        <script>_u.wia('#btnFaceBoxClose','title','comm_close');</script>
+                    </p>
+                </div>
+				<div class="faceItemPicbg">
+				</div>
+			</div>
+		</div>
+	</div>
+	<input id="face_box_target_id" type="hidden" value="" />
+	<!-- 表情选择 End -->
+
+	<div id="needUpdateChrome" style="display:none;">
+		对不起，发微暂时未支持您的Chrome浏览器，您需要升级您的Chrome浏览器到 <b>6.0.472.0 Dev</b> 版本或者以上版本。
+		如果您要升级，可以<a target="_blank" onclick="window.close();" href="http://lulu.sinaapp.com/?p=36">到这里下载</a>。
+	</div>
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		 _gaq.push(['_setAccount', 'UA-19689660-1']);
+		 _gaq.push(['_trackPageview']);
+
+		function initGA(){
+		  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		};
+		setTimeout(initGA, 1500);
+	</script>
+ </body>
+</html>

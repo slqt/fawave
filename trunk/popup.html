@@ -1,0 +1,556 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+ <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>FaWave(发微) - 多微博插件 </title>
+	<link rel="stylesheet" media="screen" type="text/css" href="css/popup.css" />
+	<link rel="stylesheet" media="screen" type="text/css" href="" id="cssTheme" />
+	<script type="text/javascript" src="scripts/lib/jquery-1.4.js" ></script>
+	<script type="text/javascript" src="scripts/lib/Base64.js" ></script>
+	<script type="text/javascript" src="scripts/lib/jquery.rotate.1-1.js" ></script>
+	<script type="text/javascript" src="scripts/lib/shotenjin.js" ></script>
+	<script type="text/javascript" src="scripts/provinces.js" ></script>
+	<script type="text/javascript" src="scripts/emotional.js" ></script>
+	<script type="text/javascript" src="scripts/utili.js" ></script>
+	<script type="text/javascript" >
+		var _view = getNewWinPopupView();
+		if(_view){
+			_view.close();
+		}
+		delete _view;
+		window.theViewName = 'popup';
+		if(window.location.search.indexOf('is_new_win=true')>0){
+			window.is_new_win_popup = true;
+		}
+		
+		this.document.title = _u.i18n('defaultTitle');
+	</script>
+	<script type="text/javascript" src="scripts/lib/sha1.js" ></script>
+	<script type="text/javascript" src="scripts/lib/oauth.js" ></script>
+	<script type="text/javascript" src="scripts/lib/jssha256.js" ></script>
+	<script type="text/javascript" src="scripts/apis.js" ></script>
+	<script type="text/javascript" src="scripts/ui.js" ></script>
+	<script type="text/javascript" src="scripts/popup.js" ></script>
+	<style id="styleCustom" ></style>
+	<style id="styleCustomResize" ></style>
+	<script>
+		var THEME = Settings.get().theme;
+		$("#cssTheme").attr('href', '/themes/' + THEME + '/css/theme.css');
+
+		var W = Settings.get().popupWidth, H = Settings.get().popupHeight;
+		var wh_css = 'body{font-family:"'+ Settings.get().font +'";font-size:'+ Settings.get().fontSite +'px;}'
+				   + '#wrapper{width:'+ W +'px;}'
+				   + '#txtContent{width:'+ (W-2) +'px;}'
+				   + '.warp{width:' + W + 'px;} .list_warp{height:' + (H-61) + 'px;}'
+				   + '#pb_map_canvas, #popup_box .image img, #popup_box .image canvas{max-width:'+ (W-10) +'px;}';
+		$("#styleCustom").html(wh_css);
+	</script>
+ </head>
+
+ <body onload="initOnLoad();">
+	 <div id="wrapper">
+		<div id="submitWarp">
+		  <div class="w">
+			<ul id="accountsForSend"></ul>
+			<textarea id="txtContent" ></textarea>
+			<div class="ctr">
+				<span id="wordCount">140</span>
+				&nbsp;
+				<a id="btnAddEmotional" href="javascript:void(0);" onclick="fawave.face.show(this, 'txtContent');">
+					<img src="images/face.gif" />
+					<script>_u.wi('comm_emotional')</script>
+				</a><script>_u.wia('#btnAddEmotional','title','btn_emotional_title');</script>&nbsp;
+				<a id="btnUploadPic" href="javascript:void(0);" onclick="openUploadImage();" title="点击上传图片">
+					<img src="images/image.gif" />
+					<script>_u.wi('comm_pic')</script>
+				</a><script>_u.wia('#btnUploadPic','title','btn_pic_title');</script>&nbsp;
+				<button onclick="cleanTxtContent();" class="btn"><script>_u.wi('comm_clear')</script></button>
+				<span id="doingWarp"></span>
+				<a id="urlShortenBtn" href="javascript:" title="缩短网址" onclick="addShortenUrl()"><img src="images/link_add.png" /></a>
+				<script>_u.wia('#urlShortenBtn','title','comm_url_shorten');</script>
+				<input type="text" id="urlShortenInp" onclick="showAddShortenUrl()" onkeyup="enterAddShortenUrl(event)" />
+				
+				<input id="btnSend" type="button" value="发微!" title="ctrl + enter 发送" class="btn send" disabled="disabled" />
+				<script>_u.wia('#btnSend','value','comm_send'); _u.wia('#btnSend','title','comm_send_tip');</script>
+			</div>
+		  </div>
+		</div><!-- submitWarp END -->
+		<div id="header">
+			<span id="loading"><img src="images/loader.gif" /></span>
+			<div class="user">
+				<a class="face" href="#"><img class="icon" src="images/1.gif" /><img class="bt" src="images/1.gif" /></a>
+				<span class="info">
+					<span class="name"></span><br/>
+					<span class="nums"></span>
+				</span>
+				<span class="top_btns">
+					<span class="search_span">
+						<a id="btnShowSearch" href="javascript:" class="search" onclick="Search.toggleInput(this);" title="_u.wi('btn_search_title')"><img src="images/search.png" /><script>_u.wi('comm_search')</script></a>
+						<script>_u.wia('#btnShowSearch','title','btn_search_title');</script>
+						<span class="searchWrap">
+							<input type="text" class="txtSearch" />
+							<a id="btnSearch" href="javascript:" class="btnSearch" onclick="Search.search();"><img src="images/search.png" /></a>
+							<img class="arrow" src="images/layerArrow.gif"/>
+							<script>_u.wia('#btnSearch','title','btn_search_title');</script>
+						</span>
+					</span>
+					<span class="user_search_span">
+                        <a id="btnShowSearchUser" href="javascript:" class="search search_user" onclick="Search.toggleInput(this);" title="_u.wi('btn_search_title')"><img src="images/face.gif" /><script>_u.wi('comm_search_user')</script></a>
+                        <script>_u.wia('#btnShowSearchUser','title','btn_search_user_title');</script>
+                        <span class="searchWrap searchUserWrap">
+                            <input type="text" class="txtSearch" />
+                            <a id="btnSearchUser" href="javascript:" class="btnSearch" onclick="Search.search();"><img src="images/search.png" /></a>
+                            <img class="arrow" src="images/layerArrow.gif"/>
+                            <script>_u.wia('#btnSearchUser','title','btn_search_user_title');</script>
+                        </span>
+                    </span>
+					<a id="btnQuickUpImg" href="javascript:" class="quickUpImg" onclick="openUploadImage();" title="点击上传图片"><img src="images/image.gif" /><script>_u.wi('comm_pic')</script></a>
+					<script>_u.wia('#btnQuickUpImg','title','btn_pic_title');</script>
+				</span>
+				<span id="topAd"></span>
+				<a href="javascript:" class="write" onclick="toogleMsgInput(this)"><script>_u.wi('comm_new_tweet')</script><b></b></a>
+			</div>
+			<ul id="tl_tabs" class="tabs">
+				<span class="btns">
+					<a id="doing" href="javascript:" title="分享你正在看的网页"><img src="images/world_link.png" /></a>
+					<script>_u.wia('#doing','title','btn_share_title');</script>
+					<a id="btnForceRefresh" href="javascript:" title="点击则当前用户马上获取最新" onclick="forceRefresh(this)"><img src="images/refresh.png" /></a>
+					<script>_u.wia('#btnForceRefresh','title','btn_refresh_title');</script>
+					<a id="btnNewWinPopup" href="javascript:" onclick="openPopupInNewWin()" title="弹出到新窗口"><img src="images/new_win.png" /></a>
+					<script>_u.wia('#btnNewWinPopup','title','btn_new_win_title');</script>
+					<a id="btnAlertMode" href="javascript:" title="" mode="alert" onclick="changeAlertMode()"><img src="images/alert_mode.png" /></a>
+					<a id="btnAutoInsert" href="javascript:" title="" mode="notautoinsert" onclick="changeAutoInsertMode()"><img src="images/not_auto_insert.png" /></a>
+				</span>
+				<li class="tab-friends_timeline active" href="#friends_timeline_timeline"><script>_u.wi('comm_TabName_friends_timeline')</script><span class="unreadCount"></span></li>
+				<li class="tab-mentions" href="#mentions_timeline"><script>_u.wi('comm_TabName_mentions')</script><span class="unreadCount"></span></li>
+				<li class="tab-comments_timeline" href="#comments_timeline_timeline"><script>_u.wi('comm_TabName_comments_timeline')</script><span class="unreadCount"></span></li>
+				<li class="tab-direct_messages" href="#direct_messages_timeline"><script>_u.wi('comm_TabName_direct_messages')</script><span class="unreadCount"></span></li>
+				<li class="tab-favorites" href="#favorites_timeline"><script>_u.wi('comm_TabName_favorites')</script><span class="unreadCount"></span></li>
+				<li class="tab-followers" href="#followers_timeline"><script>_u.wi('comm_TabName_followers')</script><span class="unreadCount"></span></li>
+				<li class="tab-user_timeline" href="#user_timeline_timeline"><script>_u.wi('comm_TabName_user_timeline')</script><span class="unreadCount"></span></li>
+			</ul>
+			<div class="clearFix"></div>
+		</div>
+		<div class="warp">
+		  <div id='friends_timeline_timeline' class="list_p">
+			<div class="list_warp">
+				<ul class="list"></ul>
+				<div id="friends_timeline_rm_loading" class="readmore_loading"><img src="images/loading_s.gif" /></div>
+			</div>
+		  </div>
+		  <div id="mentions_timeline" class="list_p" style="display:none;">
+			<div class="list_warp">
+				<ul class="list"></ul>
+				<div id="mentions_rm_loading" class="readmore_loading"><img src="images/loading_s.gif" /></div>
+			</div>
+		  </div>
+		  <div id="comments_timeline_timeline" class="list_p" style="display:none;">
+			<div class="list_warp">
+				<ul class="list"></ul>
+				<div id="comments_timeline_rm_loading" class="readmore_loading"><img src="images/loading_s.gif" /></div>
+			</div>
+		  </div>
+		  <div id="direct_messages_timeline" class="list_p" style="display:none;">
+			<div class="list_warp">
+			    <div style="padding: 2px 0 0 10px;">
+			        <script>_u.wi('abb_send_direct_message_to_user')</script> @<input type="text" class="txtSearch" id="direct_message_user" />
+			    </div>
+				<ul class="list"></ul>
+				<div id="direct_messages_rm_loading" class="readmore_loading"><img src="images/loading_s.gif" /></div>
+			</div>
+		  </div>
+		  <div id='favorites_timeline' class="list_p" style="display:none;">
+            <div class="list_warp">
+                <ul class="list"></ul>
+				<div id="favorites_rm_loading" class="readmore_loading"><img src="images/loading_s.gif" /></div>
+            </div>
+          </div>
+		  <div id="followers_timeline" class="list_p" style="display:none;">
+			<div class="list_warp">
+				<div id="fans_tab" class="tab2">
+				    <p>
+						<span class="tab_friends" t="friends"><font><script>_u.wi('comm_my')</script></font><script>_u.wi('comm_de')</script><script>_u.wi('comm_follow')</script></span>
+						<span class="active tab_followers" t="followers"><font><script>_u.wi('comm_my')</script></font><script>_u.wi('comm_de')</script><script>_u.wi('comm_fans')</script></span>
+				    </p>
+				</div>
+				<ul class="list"></ul>
+				<div id="followers_rm_loading" class="readmore_loading"><img src="images/loading_s.gif" /></div>
+			</div>
+		  </div>
+		  <div id="user_timeline_timeline" class="list_p" style="display:none;">
+			<div class="list_warp">
+				<ul class="list"></ul>
+				<div id="user_timeline_rm_loading" class="readmore_loading"><img src="images/loading_s.gif" /></div>
+			</div>
+		  </div>
+		  
+		  <div id="accountListDock">
+			<ul><!--
+				<li>
+					<span class="username">QLeelulu</span>
+					<a href="javascript:"><img src="http://tp3.sinaimg.cn/1710476902/50/1280470075/1" alt="FaWave" width="30"/></a>
+					<img src="/images/blogs/tsina_16.png" class="blogType" />
+				</li> -->
+			</ul>
+		  </div><!-- accountListDock END -->
+
+		  <span id="gototop" class="gototop" onclick="setScrollTotop();" title="返回顶部"><img src="/images/go_to_top.png" /></span>
+		  <script>_u.wia('#gototop','title','comm_go_to_top');</script>
+
+		</div><!-- div.wrap END -->
+	</div><!-- wrapper END -->
+	<div id="ye_dialog_window" >
+		<a title="关闭" href="javascript:void(0);" id="ye_dialog_close"></a>
+		<div id="ye_dialog_title"></div>
+		<div id="ye_dialog_body" >
+			<div class="replyDialog">
+				<textarea class="uTextarea" id="replyTextarea"></textarea><br/>
+				<a id="btnAddReplyEmotional" href="javascript:void(0);" onclick="fawave.face.show(this, 'replyTextarea');" title="点击添加表情"><img src="images/face.gif" /><script>_u.wi('comm_emotional')</script></a>
+				<script>_u.wia('#btnAddReplyEmotional','title','btn_emotional_title');</script>
+				<span id="replyInputCount" class="conTinge">(还可以输入140字)</span>
+				<p>
+					<input type="checkbox" id="chk_sendOneMore" /><label for="chk_sendOneMore" id="txt_sendOneMore"></label><br/>
+					<input type="checkbox" id="chk_sendOneMore2" /><label for="chk_sendOneMore2" id="txt_sendOneMore2"></label>
+				</p>
+				<button id="replySubmit" type="button" title="按 ctrl + enter 发送" class="btn" style="float: right;"><script>_u.wi('comm_send')</script></button>
+				<script>_u.wia('#replySubmit','title','comm_send_tip');</script>
+			</div>
+		</div>
+		<input type="hidden" id="actionType" value="" />
+		<input type="hidden" id="replyTweetId" value="" />
+		<input type="hidden" id="replyUserName" value="" />
+		<input type="hidden" id="replyUserId" value="" />
+		<input type="hidden" id="whisperToUserId" value="" />
+		<input type="hidden" id="repostTweetId" value="" />
+		<input type="hidden" id="commentUserId" value="" />
+		<input type="hidden" id="commentTweetId" value="" />
+		<input type="hidden" id="commentCommentId" value="" /><!-- 回复的评论ID -->
+	</div>
+
+	<div id="msgInfoWarp" style=""></div>
+	<!-- 表情选择 -->
+    <div id="face_box" class="layerBox" style="display:none;">
+        <div class="layerBoxCon1">
+            <div class="faceItem clearFix">
+                <div class="layerArrow"></div>
+                <div class="face_tab tab2">
+                    <p>
+                        <a id="btnFaceBoxClose" class="close" href="javascript:void(fawave.face.hide())"></a>
+                        <script>_u.wia('#btnFaceBoxClose','title','comm_close');</script>
+                    </p>
+                </div>
+                <div class="faceItemPicbg">
+                </div>
+            </div>
+        </div>
+    </div>
+    <input id="face_box_target_id" type="hidden" value="" />
+    <!-- 表情选择 End -->
+
+	<!-- 模板选择 -->
+	<div style="display:none;">
+		<textarea id="tp_time_line">
+			<li class="tweetItem showCounts_#{tweet.id} <?js if (!tweet.readed) { ?>unread-item<?js } ?> <?js if (tweet.myTweet) { ?>myTweet<?js } ?> " id="tweet#{tweet.id}" did="#{tweet.id}">
+			  <div class="li_wrap clearFix">
+				<div class="usericon">
+				    <span class="showtip">
+						<a class="user_head" target="_blank" href="javascript:getUserTimeline('#{user.screen_name}', '#{user.id}');" rhref="#{user.t_url}">
+							<img src="#{user.profile_image_url.replace('24x24', '48x48')}" />
+						</a>
+						#{buildTipboxUserInfo(user)}
+				    </span>
+				</div>
+				<div class="mainContent commentWrap">
+					<span class="arrow_r"></span>
+					<div class="userName">
+						<a target="_blank" user_id="#{user.id}" user_screen_name="#{user.screen_name}" href="javascript:getUserTimeline('#{user.screen_name}', '#{user.id}');" rhref="#{user.t_url}" title="#{getUserCountsInfo(user)}">
+							#{user.screen_name}<?js if(user.verified){ ?><img title="#{_u.i18n('comm_verified')}" src="/images/verified.gif" /><?js } ?>
+						</a>
+						<span class="edit">
+							<?js if(tweet.related_dialogue_url){ ?>
+							<a href="#{tweet.related_dialogue_url}" title="#{_u.i18n('comm_show_related_dialogue')}" target="_blank"><img src="images/inreply.png" /></a>
+							<?js } ?>
+							<?js if(support_instapaper){ ?>
+							<a href="javascript:void(0);" onclick="javascript:read_later(this);" title="#{_u.i18n('btn_read_later_title')}">RL</a>
+							<?js } ?>
+							#{ btn.addFavoritesMsgBtn + btn.delFavoritesMsgBtn + btn.replyBtn + btn.retweetBtn + btn.oretweetBtn + btn.repostBtn + btn.repostCounts + btn.commentBtn + btn.commentCounts + btn.new_msgBtn + btn.delTweetBtn + btn.delCommentBtn + btn.delDirectMsgBtn }
+							<a href="javascript:void(0);" onclick="javascript:translate(this);" title="#{_u.i18n('btn_translate_title')}">#{_u.i18n("btn_translate")}</a>
+						</span>
+					</div>
+					<div class="msg">
+						<div class="tweet">
+							<div class="tweet_text">#{processMsg(account, tweet)} #{btn.showMapBtn}
+								<?js if(tweet.crosspostSource) { ?>
+								<a target="_blank" href="#{tweet.crosspostSource}" title="#{_u.i18n('comm_show_original')}">#{_u.i18n('comm_show_original')}</a>
+								<?js } ?>
+							</div>
+							<?js if(tweet.thumbnail_pic){ ?>
+							<div>
+								<a target="_blank" onclick="showFacebox(this);return false;" href="javascript:void(0);" bmiddle="#{tweet.bmiddle_pic}" original="#{tweet.original_pic}" onmousedown="rOpenPic(event, this)" title="#{_u.i18n("btn_show_original_pic_title")}" class="thumbnail_pic" >
+									<img class="imgicon pic" src="#{tweet.thumbnail_pic}" />
+								</a>
+							</div>
+							<?js } ?>
+							<?js if(tweet.retweet_me || tweet.retweet_user){ ?>
+						   <div class="retweet_info">#{_u.i18n("comm_retweet_by_before")} <?js if(tweet.retweet_me){ ?>
+								<a target="_blank" 
+									href="javascript:getUserTimeline('#{tweet.retweet_me.screen_name}', '#{tweet.retweet_me.id}');" 
+									rhref="#{tweet.retweet_me.t_url}">
+									#{tweet.retweet_me.screen_name}<?js if(tweet.retweet_me.verified){ ?><img title="#{_u.i18n('comm_verified')}" src="/images/verified.gif" /><?js } ?>
+								</a>
+							 <?js } ?>
+						     <?js if(tweet.retweet_user){ ?>
+						     	<?js if(tweet.retweet_me){ ?>、<?js } ?>
+						     	<a target="_blank" 
+									href="javascript:getUserTimeline('#{tweet.retweet_user.screen_name}', '#{tweet.retweet_user.id}');" 
+									rhref="#{tweet.retweet_user.t_url}">
+									#{tweet.retweet_user.screen_name}<?js if(tweet.retweet_user.verified){ ?><img title="#{_u.i18n('comm_verified')}" src="/images/verified.gif" /><?js } ?>
+								</a>
+							 <?js } ?> #{_u.i18n("comm_retweet_by_after")}</div>
+						   <?js } ?>
+						</div>
+						<?js if(tweet.retweeted_status && tweet.retweeted_status.text){ ?>
+						<!-- 转发 -->
+						<!-- {{retweeted_status_in}} -->
+						<!-- 转发 End -->
+						<?js } ?>
+					</div>
+					<div class="comments">
+						<p style="text-align:right;"><a href="javascript:void(0);" class="comment_hide_list_btn" onclick="showComments(this, '#{tweet.id}');">#{_u.i18n("btn_hide_comments")}</a></p>
+						<ul class="comment_list"></ul>
+						<div class="comment_paging" page="1">
+							<a class="pre_page" href="javascript:void(0);" onclick="commentPage(this, '#{tweet.id}', true);" style="display:none;">#{_u.i18n("btn_prev_page")}</a>
+							<a class="next_page" href="javascript:void(0);" onclick="commentPage(this, '#{tweet.id}');" style="display:none;">#{_u.i18n("btn_next_page")}</a>
+						</div>
+						<br />
+					</div>
+					<?js if(tweet.created_at){ ?>
+					<div class="msgInfo">
+					   <?js if(tweet.t_url){ ?>
+					   <a href="#{tweet.t_url}" target="_blank">#{new Date(tweet.created_at).format("yyyy-MM-dd hh:mm:ss")}</a> 
+					   <?js } else { ?>
+					   #{new Date(tweet.created_at).format("yyyy-MM-dd hh:mm:ss")}
+					   <?js } ?>
+					   #{_u.i18n('comm_post_by')} #{tweet.source|| _u.i18n("comm_web_site")}
+					   <?js if(!tweet.retweeted_status && tweet.in_reply_to_status_id && tweet.in_reply_to_screen_name){ ?>
+					   <a href="javascript:void(0);" class="show_source_status_btn" status_id="#{tweet.in_reply_to_status_id}" 
+					       title="#{_u.i18n('comm_show_original_status')}">#{_u.i18n("btn_show_source_status", [tweet.in_reply_to_screen_name])}</a>
+					   <?js } ?>
+					   <!-- 提示私信是回复给谁的 -->
+					   #{btn.messageReplyToBtn}
+					</div>
+					<?js } ?>
+				</div>
+			  </div> <!-- end .li_wrap -->
+				<?js if(tweet.retweeted_status && tweet.retweeted_status.text){ ?>
+				<!-- 转发 -->
+				<!-- {{retweeted_status_out}} -->
+				<!-- {{retweeted_retweeted_status_out}} -->
+				<!-- 转发 End -->
+				<?js } ?>
+				<div class="msgObjJson" style="display:none;">#{escape(JSON.stringify(tweet))}</div>
+			</li>
+		</textarea>
+		<!-- 转发模板（包括评论、@我的所带的原status） -->
+		<textarea id="tp_time_line_rt">
+			<!-- 转发 -->
+			<div class="msg">
+				<div class="tweetItem retweeted commentWrap showCounts_#{tweet.retweeted_status.id} <?js if(is_rt_rt){ ?>rt_retweeted<?js } ?>" id="tweet#{tweet.retweeted_status.id}">
+					<div class="userName">
+					    <?js if(is_rt_rt){ ?>
+					    <a user_id='#{retweeted_status_user.id}' user_screen_name="#{retweeted_status_user.screen_name}" 
+					        href="javascript:getUserTimeline('#{retweeted_status_user.screen_name}', '#{retweeted_status_user.id}');">@#{retweeted_status_user.screen_name}</a> 
+					    <?js } ?><?js if(tType=='comments_timeline' && !is_rt_rt){ ?> 
+					        #{_u.i18n('comm_comment_to_before')} 
+					    <?js }else{ ?> 
+					        #{_u.i18n('comm_repost_to_before')}
+					    <?js } ?>
+						<span class="showtip">
+							<a target="_blank" 
+								href="javascript:getUserTimeline('#{tweet.retweeted_status.user.screen_name}', '#{tweet.retweeted_status.user.id}');" 
+								rhref="#{tweet.retweeted_status.user.t_url}">
+								@#{tweet.retweeted_status.user.screen_name}<?js if(tweet.retweeted_status.user.verified){ ?><img title="#{_u.i18n('comm_verified')}" src="/images/verified.gif" /><?js } ?>
+							</a>
+							#{buildTipboxUserInfo(tweet.retweeted_status.user)}
+						</span>
+						#{_u.i18n("comm_repost_to_after")}: 
+						<span class="edit">
+						    <?js if(support_instapaper){ ?>
+                            <a href="javascript:void(0);" onclick="javascript:read_later(this);" title="#{_u.i18n('btn_read_later_title')}">RL</a>
+                            <?js } ?>
+							#{ btn.rtAddFavoritesMsgBtn + btn.rtReplyBtn + btn.rtRetweetBtn + btn.rtRepostBtn + btn.rtRepostCounts + btn.rtOretweetBtn + btn.rtCommentBtn + btn.rtCommentCounts}
+							<a href="javascript:void(0);" onclick="javascript:translate(this);" title="#{_u.i18n('btn_translate_title')}">#{_u.i18n("btn_translate")}</a>
+						</span>
+					</div>
+					<div class="tweet_text">#{processMsg(account, tweet.retweeted_status)} #{btn.rtShowMapBtn}
+						<?js if(tweet.crosspostSource) { ?>
+						<a target="_blank" href="#{tweet.crosspostSource}" title="#{_u.i18n('comm_show_original')}">#{_u.i18n('comm_show_original')}</a>
+						<?js } ?>
+					</div>
+					<?js if(tweet.retweeted_status.thumbnail_pic){ ?>
+					<div>
+						<a target="_blank" onclick="showFacebox(this);return false;" href="javascript:void(0);" 
+						    bmiddle="#{tweet.retweeted_status.bmiddle_pic}" 
+						    title="#{_u.i18n("btn_show_original_pic_title")}" 
+						    original="#{tweet.retweeted_status.original_pic}" 
+						    onmousedown="rOpenPic(event, this)" class="thumbnail_pic" >
+						<img class="imgicon pic" src="#{tweet.retweeted_status.thumbnail_pic}" /></a>
+					</div>
+					<?js } ?>
+					<!-- {{retweeted_retweeted_status_in}} -->
+					<?js if(tweet.retweeted_status.created_at){ ?>
+					<div class="msgInfo">
+						<?js if(tweet.retweeted_status.t_url){ ?>
+						<a href="#{tweet.retweeted_status.t_url}" target="_blank">#{new Date(tweet.retweeted_status.created_at).format("yyyy-MM-dd hh:mm:ss")}</a>
+						<?js } else { ?>
+						#{new Date(tweet.retweeted_status.created_at).format("yyyy-MM-dd hh:mm:ss")}
+						<?js } ?>
+						#{_u.i18n('comm_post_by')} #{tweet.retweeted_status.source|| _u.i18n("comm_web_site")}
+					</div>
+					<?js } ?>
+					<div class="comments">
+						<p style="text-align:right;"><a href="javascript:void(0);" class="comment_hide_list_btn" onclick="showComments(this, '#{tweet.retweeted_status.id}');">#{_u.i18n("btn_hide_comments")}</a></p>
+						<ul class="comment_list"></ul>
+						<div class="comment_paging" page="1">
+							<a class="pre_page" href="javascript:void(0);" onclick="commentPage(this, '#{tweet.retweeted_status.id}', true);" style="display:none;">#{_u.i18n("btn_prev_page")}</a>
+							<a class="next_page" href="javascript:void(0);" onclick="commentPage(this, '#{tweet.retweeted_status.id}');" style="display:none;">#{_u.i18n("btn_next_page")}</a>
+						</div>
+						<br />
+					</div>
+				</div>
+			</div>
+			<!-- 转发 End -->
+		</textarea>
+		<!-- 用户信息tipbox模板 -->
+		<textarea id="tp_tipbox_user_info">
+			<div class="tipbox">
+				<div>
+					<div class="user_head"><img src="#{user.profile_image_url}" /></div>
+					<div class="user_info">
+						<p><a href="javascript:getUserTimeline('#{user.screen_name}', '#{user.id}');" 
+							rhref="#{user.t_url}">#{user.screen_name}
+							<?js if(user.verified){ ?><img title="#{_u.i18n('comm_verified')}" src="/images/verified.gif" /><?js } ?>
+						</a></p>
+						<p>
+							<img class="small_icon sicon_gender_#{user.gender}" src="/images/transparent.gif" 
+								title="<?js if(user.gender == 'm'){ ?> #{_u.i18n('comm_man')} <?js }else if(user.gender == 'f'){ ?> #{_u.i18n('comm_female')} <?js }else{ ?> #{_u.i18n('comm_gender_unknow')} <?js } ?>" />
+							 <?js if(user.province){ ?>
+							 #{provinces[user.province] ? provinces[user.province].name : user.province}, #{provinces[user.province] ? provinces[user.province]["citys"][user.city]:user.city}
+							 <?js } ?>
+						</p>
+						<p>#{_u.i18n("comm_follow")}: <span><a href="javascript:showFollowers('friends', '#{user.screen_name}', '#{user.id}');">#{user.friends_count == undefined ? _u.i18n("comm_view"): user.friends_count}</a></span>　
+							#{_u.i18n("comm_fans")}: <span><a href="javascript:showFollowers('followers', '#{user.screen_name}', '#{user.id}');">#{user.followers_count == undefined ? _u.i18n("comm_view"): user.followers_count}</a></span></p>
+						<p>#{_u.i18n("comm_tweet")}: <span><a href="javascript:getUserTimeline('#{user.screen_name}', '#{user.id}');">#{user.statuses_count == undefined ? _u.i18n("comm_view"): user.statuses_count}</a></span></p>
+					</div>
+				</div>
+				<?js if(user.description){ ?>
+				<div class="des">#{_u.i18n("comm_description")}：#{user.description}</div>
+				<?js } ?>
+			</div>
+		</textarea>
+		<!-- 用户信息tipbox模板 END -->
+
+		<!-- 用户信息模板(查看用户微博tab用) -->
+		<textarea id="tp_user_info">
+			<div class="userinfo_detail">
+				<div class="user_head"><img src="#{user.profile_image_url}" /></div>
+				<div class="user_info">
+					<div class="userName"><a href="#{user.t_url}">#{user.screen_name}<?js if(user.verified){ ?><img title="#{_u.i18n('comm_verified')}" src="/images/verified.gif" /><?js } ?></a>
+					<?js if(!user.is_me){ ?>
+					<a class="follow" href="javascript:" onclick="doReply(this, '#{user.screen_name}', '', '#{user.id}')">@</a>
+					<a class="follow" href="javascript:" onclick="doNewMessage(this, '#{user.screen_name}','#{user.id}')">#{_u.i18n("abb_direct_message")}</a>
+						<?js if(support_follow){ ?>
+						<a class="follow" href="javascript:" onclick="f_destroy('#{user.id}', this, '#{user.screen_name}')">#{_u.i18n("comm_f_destroy")}</a>
+						<a class="follow" href="javascript:" onclick="f_create('#{user.id}', this, '#{user.screen_name}')"><span class="plus">+</span>#{_u.i18n("comm_f_create")}</a>
+						<?js } ?>
+					<?js } ?>
+					</div>
+					<p>
+						<img class="small_icon sicon_gender_#{user.gender}" src="/images/transparent.gif" 
+							title="<?js if(user.gender == 'm'){ ?> #{_u.i18n('comm_man')} <?js }else if(user.gender == 'f'){ ?> #{_u.i18n('comm_female')} <?js }else{ ?> #{_u.i18n('comm_gender_unknow')} <?js } ?>" />
+					      <?js if(user.province){ ?>
+	                      #{provinces[user.province] ? provinces[user.province].name : user.province}, 
+	                      #{provinces[user.province] ? provinces[user.province]["citys"][user.city] : user.city}
+	                      <?js } ?>
+	                </p>
+					<p>#{_u.i18n("comm_follow")}: <span><a href="javascript:showFollowers('friends', '#{user.screen_name}', '#{user.id}');">#{user.friends_count == undefined ? _u.i18n("comm_view"): user.friends_count}</a></span>　
+						#{_u.i18n("comm_fans")}: <span><a href="javascript:showFollowers('followers', '#{user.screen_name}', '#{user.id}');">#{user.followers_count == undefined ? _u.i18n("comm_view"): user.followers_count}</a></span>　
+						#{_u.i18n("comm_tweet")}: <span><a href="javascript:getUserTimeline('#{user.screen_name}', '#{user.id}');">#{user.statuses_count == undefined ? _u.i18n("comm_view"): user.statuses_count}</a></span></p>
+					<?js if(user.url && user.url != 'http://1'){ ?>
+					<p>#{_u.i18n("comm_blog")}：<a href="#{user.url}">#{user.url}</a></p>
+					<?js } ?>
+				</div>
+				<?js if(user.description){ ?>
+				<div class="des">#{_u.i18n("comm_description")}：#{user.description}</div>
+				<?js } ?>
+				<?js if(user.tags){ ?>
+                <div class="tags">#{_u.i18n("comm_tags")}：
+	                <?js for(var i=0;i<user.tags.length;i++){ var tag = user.tags[i]; ?>
+	                <a target="_blank" href="http://t.qq.com/search/tag.php?k=#{tag.name}">#{tag.name}</a>
+	                <?js } ?>
+                </div>
+                <?js } ?>
+			</div>
+		</textarea>
+		<!-- 粉丝模板 -->
+		<textarea id="tp_fans">
+			<div class="fans">
+				<div class="user_head"><img src="#{user.profile_image_url}" /></div>
+				<div class="user_info" did="#{user.id}">
+					<div class="userName"><a href="javascript:getUserTimeline('#{user.screen_name}', '#{user.id}');" 
+							rhref="#{user.t_url}">#{user.screen_name}<?js if(user.verified){ ?><img title="#{_u.i18n('comm_verified')}" src="/images/verified.gif" /><?js } ?></a>
+						<a class="follow" href="javascript:" onclick="doReply(this, '#{user.screen_name}', '')">@</a>
+						<a class="follow" href="javascript:" onclick="doNewMessage(this, '#{user.screen_name}','#{user.id}')">#{_u.i18n("abb_direct_message")}</a>
+						<?js if(support_follow && user.unfollow === undefined && tType =='friends'){ ?>
+						<a class="follow" href="javascript:" onclick="f_destroy('#{user.id}', this, '#{user.screen_name}')">#{_u.i18n("comm_f_destroy")}</a>
+						<?js }else if(support_follow){ ?>
+						<a class="follow" href="javascript:" onclick="f_create('#{user.id}', this, '#{user.screen_name}')"><span class="plus">+</span>#{_u.i18n("comm_f_create")}</a>
+						<?js } ?>
+					</div>
+					<p>
+				     <img class="small_icon sicon_gender_#{user.gender}" src="/images/transparent.gif" 
+							title="<?js if(user.gender == 'm'){ ?> #{_u.i18n('comm_man')} <?js }else if(user.gender == 'f'){ ?> #{_u.i18n('comm_female')} <?js }else{ ?> #{_u.i18n('comm_gender_unknow')} <?js } ?>" />
+					 <?js if(user.province){ ?>
+                          #{provinces[user.province] ? provinces[user.province].name : user.province}, 
+                          #{provinces[user.province] ? provinces[user.province]["citys"][user.city] : user.city}
+                     <?js } else if(user.location){ ?>
+                     	#{user.location}
+                     <?js } ?>
+                    </p>
+					<p>#{_u.i18n("comm_follow")}: <span><a href="javascript:showFollowers('friends', '#{user.screen_name}', '#{user.id}');">#{user.friends_count == undefined ? _u.i18n("comm_view"): user.friends_count}</a></span>　
+						#{_u.i18n("comm_fans")}: <span><a href="javascript:showFollowers('followers', '#{user.screen_name}', '#{user.id}');">#{user.followers_count == undefined ? _u.i18n("comm_view"): user.followers_count}</a></span>　
+						#{_u.i18n("comm_tweet")}: <span><a href="javascript:getUserTimeline('#{user.screen_name}', '#{user.id}');">#{user.statuses_count == undefined ? _u.i18n("comm_view"): user.statuses_count}</a></span></p>
+					<?js if(user.url && user.url != 'http://1'){ ?>
+					<p>#{_u.i18n("comm_blog")}：<a href="#{user.url}">#{user.url}</a></p>
+					<?js } ?>
+				</div>
+				<?js if(user.description){ ?>
+				<div class="des">#{_u.i18n("comm_description")}：#{user.description}</div>
+				<?js } ?>
+			</div>
+		</textarea>
+	</div>
+	
+	<script type="text/javascript">
+		var TEMPLATE = $("#tp_time_line").val();
+		var TEMPLATE_RT = $("#tp_time_line_rt").val();
+		var TEMPLATE_USER_INFO = $("#tp_user_info").val();
+		var TEMPLATE_TIPBOX_USER_INFO = $("#tp_tipbox_user_info").val();
+		var TEMPLATE_FANS = $("#tp_fans").val();
+	</script>
+	<!-- 模板选择 End -->
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		 _gaq.push(['_setAccount', 'UA-19689660-1']);
+		 _gaq.push(['_trackPageview']);
+
+		function initGA(){
+		  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		};
+		setTimeout(initGA, 1500);
+	</script>
+ </body>
+</html>

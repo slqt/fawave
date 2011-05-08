@@ -1,0 +1,81 @@
+<html>
+<head>
+<link href="css/desktop_alert.css" type="text/css" rel="stylesheet" />
+<script>
+var TIME,
+	HTIME,
+    Timeout,
+    data,
+	TIME_LINE,
+	uniqueKey,
+    hash = location.hash;
+
+function g(id){ return document.getElementById(id); };
+
+function load(){
+    TIME = setTimeout(function(){
+        window.close();
+    }, Timeout*1000);
+};
+
+function highlightTimeline(){
+	var list = TIME_LINE.split(',');
+	for(var i in list){
+		var sp = g('unr_'+list[i]);
+		sp.className = 'highlight';
+	}
+	HTIME = setTimeout(removeHighlight, 1200);
+};
+
+function removeHighlight(){
+	clearTimeout(HTIME);
+	if(!TIME_LINE) return;
+	var list = TIME_LINE.split(',');
+	for(var i in list){
+		var sp = g('unr_'+list[i]);
+		if(sp){
+			sp.className = '';
+		}
+	}
+};
+
+function updateInfo(t, unreads){
+	removeHighlight();
+	TIME_LINE = t;
+	var sp = null, spp = null;
+	for(var k in unreads){
+		sp = g('unr_'+k);
+		spp = sp.getElementsByTagName('span');
+		if(spp.length){
+			spp[0].innerHTML = unreads[k];
+		}
+	}
+	highlightTimeline();
+};
+</script>
+</head>
+<body onload="load()" onmouseout="load()" onmouseover="clearTimeout(TIME)">
+<script>
+
+if(hash){
+    var h = hash.split('#');
+    if(h[1]){
+        //data = unescape(h[1]);
+		var bg = chrome.extension.getBackgroundPage();
+		if(bg){
+			data = bg.NotificationsManager.getShowHtml(h[1]);
+			document.write(data);
+		}else{
+			window.close();
+		}
+    }
+    else{
+        window.close();
+    }
+}
+else{
+    window.close();
+} 
+</script>
+</body>
+</html>

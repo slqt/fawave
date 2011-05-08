@@ -1,0 +1,47 @@
+<html>
+ <head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="Authorization" content="Base 1232" />
+	<meta http-equiv="expires" content="31 Dec 2008">
+	<title>播放器 - FaWave(发微) - 多微博插件 </title>
+	<script type="text/javascript"> window.theViewName = 'popshow'; </script>
+	<link rel="stylesheet" media="screen" type="text/css" href="/css/popup.css" />
+	<script type="text/javascript" src="scripts/lib/jquery-1.4.js" ></script>
+	<script type="text/javascript" src="scripts/utili.js" ></script>
+	<script type="text/javascript">
+		document.title = _u.i18n('comm_player') 
+		    + ' - ' + _u.i18n('defaultTitle');
+		$(document).ready(function() {
+			var params = decodeForm(window.location.search);
+			var flash = params.flash;
+			var title = params.title || '';
+			var vtype = params.vtype;
+			$('#url').before(' [' + vtype + '] ')
+			    .attr('href', params.s).html(title + ' ' + params.s);
+			var flash_code = flash ? 
+			    VideoService.format_flash(flash) 
+			    : 
+			    VideoService.format_tpl(VideoService.services[vtype], params.url, '#content');
+			$('#content').html(flash_code);
+		});
+	</script>
+ </head>
+ <body style="margin:0 auto;">
+ 	<a id="url"></a>
+ 	<br />
+	<div id="content">
+	</div>
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		 _gaq.push(['_setAccount', 'UA-19689660-1']);
+		 _gaq.push(['_trackPageview']);
+
+		function initGA(){
+		  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		};
+		setTimeout(initGA, 1500);
+	</script>
+ </body>
+</html>
