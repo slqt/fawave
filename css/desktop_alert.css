@@ -1,0 +1,15 @@
+body{font-size:12px; margin:2px; padding:0; height:55px; overflow: hidden;}
+.fawave_clearFix{ display:block;}
+.fawave_clearFix:after {content:"."; display:block;visibility:hidden;height:0;clear:both;}
+.fawave_fr{float:right;}
+.fawave_fl{float:left;}
+
+.item .usericon{float:left; position:relative; margin-right:8px;}
+.item .usericon .face{border:solid 1px #eee; padding:2px; width:48px; height:48px;}
+.item .usericon .blogType{position:absolute; bottom:0px; right:-2px;}
+.item .info {margin-left: 70px;}
+.item .info .username{font-weight:bold; color:green; font-size:13px; margin-left: -8px;}
+.item .info .unreads{line-height:17px;}
+.item .info .unreads > span{ -webkit-transition: all 0.9s ease; padding:2px; display:inline-block; min-width:38px; }
+.item .info .unreads span span{ color:#A00000; font-weight:bold; }
+.item .info .unreads .highlight {font-size:16px; color:green; background:yellow;}
