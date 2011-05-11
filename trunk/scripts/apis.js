@@ -729,10 +729,9 @@ var sinaApi = {
 	    }
 	    builder += crlf;
 	
-	    builder += 'Content-Type: '+ pic.file.type;
+	    builder += 'Content-Type: '+ (pic.file.fileType || pic.file.type);
 	    builder += crlf;
 	    builder += crlf; 
-	    
 	    var bb = new BlobBuilder(); //NOTE change to WebKitBlogBuilder
 	    bb.append(builder);
 	    bb.append(pic.file);
@@ -814,7 +813,7 @@ var sinaApi = {
 	                errorThrown = errorThrown ? ('errorThrown: ' + errorThrown + '; ') : '';
 	                _showMsg('error: ' + textStatus + errorThrown + 'statuCode: ' + status);
 	            }
-	            callback.call(context, {}, 'error', status); //不管什么状态，都返回 error
+	            callback.call(context, r || {}, 'error', status); //不管什么状态，都返回 error
 	        }
 	    });
     },
@@ -4650,9 +4649,7 @@ var VDiskAPI = {
 			time: Math.floor(new Date().getTime() / 1000)
 		};
 		var basestring = 'account={{account}}&appkey={{appkey}}&password={{password}}&time={{time}}'.format(params);
-		console.log(basestring);
 		params.signature = this._sha256(basestring);
-		console.log(params)
 		$.post('http://openapi.vdisk.me/?m=auth&a=get_token', params, function(data){
 			console.log(data);
 		});
