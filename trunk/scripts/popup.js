@@ -117,8 +117,8 @@ function init(){
     	// 选中则发私信
     	doNewMessage($("#direct_message_user").get(0), user.screen_name, user.id);
     });
-    
-    adShow();
+    //CMT by sigma 
+    //adShow();
 };
 
 function initializeMap(){};//给载入地图api调用
@@ -2079,6 +2079,7 @@ function doRT(ele, is_rt, is_rt_rt){//RT
     val = repost_pre + ' ' + '@' + name + ' ' + val;
     if(original_pic) {
     	// 有图片，自动带上图片地址，并尝试缩短
+			jQuery.get(original_pic);
     	var settings = Settings.get();
     	var longurl = original_pic;
     	val += config.image_shorturl_pre + longurl;
