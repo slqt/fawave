@@ -269,6 +269,10 @@
 		"message": "分享當前網頁",
 		"description": "分享当前网页"
 	},
+	"comm_share_this_page_and_capture": {
+        "message": "分享當前網頁并截图",
+        "description": "分享当前网页并截图"
+    },
 	"comm_show_related_dialogue": {
 		"message": "查看相關對話",
 		"description": "查看相关对话"
@@ -566,6 +570,10 @@
 	    "message": "分享你正在看的網頁",
 		"description": "分享你正在看的网页"
 	},
+	"btn_share_title_with_capture": {
+        "message": "分享你正在看的網頁并截图",
+        "description": "分享你正在看的网页并截图"
+    },
 	"btn_show_source_status": {
 		"message": "對 $name$ 的回复",
 		"description": "对 *** 的回复,点击显示回复的tweet内容",

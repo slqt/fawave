@@ -11,14 +11,13 @@
 	<script type="text/javascript" src="scripts/lib/Base64.js" ></script>
 	<script type="text/javascript" src="scripts/emotional.js" ></script>
 	<script type="text/javascript" src="scripts/utili.js" ></script>
-	<script type="text/javascript" src="scripts/s8api.js" ></script>
 	<script type="text/javascript" src="scripts/lib/sha1.js" ></script>
     <script type="text/javascript" src="scripts/lib/oauth.js" ></script>
 	<script type="text/javascript" src="scripts/apis.js" ></script>
 	<script type="text/javascript" src="scripts/ui.js" ></script>
 	<script type="text/javascript" src="scripts/popup.js" ></script>
 	<script type="text/javascript" src="scripts/upimage.js" ></script>
-	<style id="styleCustom" ></style>
+	<style id="styleCustom"></style>
 	<script>
 		this.document.title = _u.i18n('comm_pic') + ' -- ' + _u.i18n('defaultTitle');
 		
@@ -48,6 +47,7 @@
 	<div>
 		<ul id="uploadinfo">
 		</ul>
+		<form id="uploadForm">
 		<div class="fileSel graph">
 			<strong id="progressBar" class="bar" style="width: 0%;"><span></span></strong>
 			<div class="selTip"><script>_u.wi('btn_select_pic_title')</script></div>
@@ -55,10 +55,14 @@
 		<span id="imageFileWrap" style="display:block;">
 			<input type="file" value="选择图片" id="imageFile" onchange="selectFile(this)" />
 		</span>
-		
+		<div class="fileSel graph">
+        或者输入图片URL: 
+        <input type="text" style="width:60%;" id="imageUrl" onchange="selectUrl(this);" />
+        </div>
+        </form>
 		<!-- <div style="width: 200px; "><span id="progressBar"></span></div> -->
 		<div id="imgPreview"></div>
-	<div>
+	</div>
 	<div id="msgInfoWarp" style=""></div>
 	
 	<!-- 表情选择 -->

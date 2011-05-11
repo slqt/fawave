@@ -117,8 +117,8 @@ function init(){
     	// 选中则发私信
     	doNewMessage($("#direct_message_user").get(0), user.screen_name, user.id);
     });
-    //CMT by sigma 
-    //adShow();
+    
+    adShow();
 };
 
 function initializeMap(){};//给载入地图api调用
@@ -363,25 +363,34 @@ function enterAddShortenUrl(e){
 
 //我正在看
 function initIamDoing(){
-    $("#doing").click(function(){
-        chrome.tabs.getSelected(null, function(tab){
-            var loc_url = tab.url;
-            if(loc_url){
-                var title = tab.title || '';
-                var $txt = $("#txtContent");
-                var settings = Settings.get();
-                $txt.val(formatText(settings.lookingTemplate, {title: title, url: loc_url}));
-                showMsgInput();
-                _shortenUrl(loc_url, settings, function(shorturl){
-		            if(shorturl) {
-		                $txt.val($txt.val().replace(loc_url, shorturl));
-		            }
-		        });
-            } else {
-                showMsg(_u.i18n("msg_wrong_page_url"));
-            }
-        });
-    });
+	function shareDoing(capture) {
+		return function() {
+			chrome.tabs.getSelected(null, function(tab){
+	            var loc_url = tab.url;
+	            if(loc_url){
+	            	if(capture) {
+	            		openUploadImage(tab.id);
+	            	} else {
+	            		var title = tab.title || '';
+		                var $txt = $("#txtContent");
+		                var settings = Settings.get();
+		                $txt.val(formatText(settings.lookingTemplate, {title: title, url: loc_url}));
+		                showMsgInput();
+		                _shortenUrl(loc_url, settings, function(shorturl){
+				            if(shorturl) {
+				                $txt.val($txt.val().replace(loc_url, shorturl));
+				            }
+				        });
+	            	}
+	            } else {
+	                showMsg(_u.i18n("msg_wrong_page_url"));
+	            }
+	        });
+		};
+	};
+    $("#doing").click(shareDoing(false));
+    // 分享正在查看，并带上截图
+    $("#doingWithCapture").click(shareDoing(true));
 };
 
 //搜索
@@ -2079,7 +2088,6 @@ function doRT(ele, is_rt, is_rt_rt){//RT
     val = repost_pre + ' ' + '@' + name + ' ' + val;
     if(original_pic) {
     	// 有图片，自动带上图片地址，并尝试缩短
-			jQuery.get(original_pic);
     	var settings = Settings.get();
     	var longurl = original_pic;
     	val += config.image_shorturl_pre + longurl;
@@ -2306,32 +2314,24 @@ function showGeoMap(user_img, latitude, longitude){
     }
 };
 
-//====>>>>
 //打开上传图片窗口
-function openUploadImage(){
+function openUploadImage(tabId){
     initOnUnload();
     var l = (window.screen.availWidth-510)/2;
-    window.open('upimage.html', '_blank', 'left=' + l + ',top=30,width=510,height=600,menubar=no,location=no,resizable=no,scrollbars=yes,status=yes');
+    tabId = tabId || '';
+    window.open('upimage.html?tabId=' + tabId, '_blank', 'left=' + l + ',top=30,width=510,height=600,menubar=no,location=no,resizable=no,scrollbars=yes,status=yes');
 };
-//<<<<=====
 
-//====>>>>
 //在新窗口打开popup页
 function openPopupInNewWin(){
     initOnUnload();
-    /*
-    if(getNewWinPopupView()){
-        getNewWinPopupView().blur();
-        getNewWinPopupView().focus();
-        return;
-    } */
     var W = Settings.get().popupWidth, H = Settings.get().popupHeight;
     var l = (window.screen.availWidth-W)/2;
     window.theViewName = 'not_popup';
-    getBackgroundView().new_win_popup.window = window.open('popup.html?is_new_win=true', 'FaWave', 'left=' + l + ',top=30,width=' + W + ',height=' + (H+10) + ',menubar=no,location=no,resizable=no,scrollbars=yes,status=yes');
+    var url = 'popup.html?is_new_win=true';
+    getBackgroundView().new_win_popup.window = window.open(url, 'FaWave', 'left=' + l + ',top=30,width=' + W + ',height=' + (H+10) + ',menubar=no,location=no,resizable=no,scrollbars=yes,status=yes');
 };
 
-//====>>>>
 //新消息提示模式：提示模式、免打扰模式
 function changeAlertMode(to_mode){
     var btn = $("#btnAlertMode");
@@ -2345,7 +2345,6 @@ function changeAlertMode(to_mode){
     setUnreadTimelineCount(0, 'friends_timeline');
 };
 
-//====>>>>
 //新消息是否自动插入：自动插入、仅提示新消息数
 function changeAutoInsertMode(to_mode){
     var btn = $("#btnAutoInsert");
@@ -2358,7 +2357,6 @@ function changeAutoInsertMode(to_mode){
     btn.attr('mode', to_mode).attr('title', tip).find('img').attr('src', 'images/' + to_mode + '.png');
 };
 
-//====>>>>
 //表情添加
 fawave.face = {
     show: function(ele, target_id){
